@@ -1,0 +1,6 @@
+/.idea
+/Include
+/Lib
+/Scripts
+**/__pycahce__
+pyvenv.cfg
