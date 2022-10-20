@@ -1,6 +1,6 @@
+# dirs
 /.idea
-/Include
-/Lib
-/Scripts
-**/__pycahce__
-pyvenv.cfg
+/data
+/venv
+**/__pycache__
+venv/pyvenv.cfg
