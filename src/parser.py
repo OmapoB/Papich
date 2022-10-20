@@ -1,12 +1,17 @@
 import re
-import pandas as pd
 import pathlib as pl
+
+import pandas as pd
+from numpy import int32
+
 from MyLibs.data_loader import DataFrameLoader
 
 path_from = pl.Path('../data/Prays-list_21_08_2022.xls')
 path_to = pl.Path('../data/stocks_2.xlsx')
 
-file_from = DataFrameLoader(path='../data/Prays-list_21_08_2022.xls',
+to_change = pd.read_excel(path_to)
+
+file_from = DataFrameLoader(path=path_from,
                             cols=['Номенклатура',
                                   'Описание',
                                   'Ед.изм.',
@@ -17,7 +22,7 @@ file_from = DataFrameLoader(path='../data/Prays-list_21_08_2022.xls',
                                   'Витрина ОК Галерея Кухни'],
                             skip=2).load_df().astype({'Код для поиска': 'int32'})
 
-file_to = DataFrameLoader(path='../data/stocks_2.xlsx',
+file_to = DataFrameLoader(path=path_to,
                           cols=['Баркод',
                                 'Вид товара',
                                 'Бренд',
@@ -32,6 +37,8 @@ patterns_dict = {
     r'.*(\d{5}).*(\1)': [5],
     r'.*(\d{4}).*(\1)': [4],
     r'.*(\d{3}).*(\1)': [3],
+    r'.*(\d{2}).*(\1)': [2],
+    r'.*(\d{1}).*(\1)': [1],
     r'.*(\d{5})$': [-1]
 }
 
@@ -39,7 +46,7 @@ codes_dict = {}
 
 
 def true_code_finder(raw_string, supposed_code):
-    code = re.search(r'\D+(\d{3,5}$)', raw_string)
+    code = re.search(r'\D+(\d{1,5}$)', raw_string)
     if code is not None:
         codes_dict.update({raw_string: code.groups()[-1]})
     else:
@@ -60,37 +67,44 @@ def find_by_pattern(pattern, where):
                     true_code_finder(where[j], find.groups()[-1])
                 case 3:
                     true_code_finder(where[j], find.groups()[-1])
+                case 2:
+                    true_code_finder(where[j], find.groups()[-1])
+                case 1:
+                    true_code_finder(where[j], find.groups()[-1])
+                case -1:
+                    codes_dict.update({where[j]: find.groups()[-1]})
 
     where.drop(to_delete, axis=0, inplace=True)
     where.reset_index(drop=True, inplace=True)
     return where
 
-
 for key in patterns_dict.keys():
     searching = find_by_pattern(key, searching)
 
-for item in codes_dict.items():
-    print(item)
-# for k, item in enumerate(codes_dict.items(), 1):
-#     print(k, ' ', item)
+# print(searching)        # not found
 
-# finder = re.search(r'.*(\d{5}).*(\1)', searching[0])
-# print(finder.groups()[-1])
+errors = {}
+
+file_from.set_index('Код для поиска', inplace=True)
+to_change.set_index('Артикул поставщика', inplace=True)
+
+for raw_code, code in codes_dict.items():
+    try:
+        amount = file_from.loc[int32(code)]
+        try:
+            if int(amount) in range(0, 3):
+                amount = 0
+            else:
+                amount = int(amount // 2)
+        except ValueError as e:
+            amount = 0
+        finally:
+            to_change.loc[[raw_code],['Количество']] = amount
+    except KeyError as not_found:
+        errors.update({raw_code: code})
 
 
-# for item in patterns_dict.items():
-#     for i in item[1]:
-#         print(i)
-#     print()
-# в начале
-# ^([A-z]*)(\d{3})
-
-# в потом
-# .*(\d{5}).*(\1)
-# .*(\d{4}).*(\1) если с конца больше 4 чисел то берем это число
-# .*(\d{3}).*(\1)
-# .*(\d{2}).*(\1)
-# .*(\d{1}).*(\1)
-
-# в конце
-# .*(\d{5})$
+# k=0
+# for i in errors.items():
+#     print(k, ' ', i)
+#     k += 1
