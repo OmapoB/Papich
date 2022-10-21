@@ -115,8 +115,7 @@ def parse():
     save = pd.ExcelWriter('123.xlsx')
     to_change.to_excel(save)
     save.save()
-    print('saved')
-    # errors не обработан
+
 
 
 root = Tk()
