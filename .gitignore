@@ -2,5 +2,7 @@
 /.idea
 /data
 /venv
+/tests
 **/__pycache__
 venv/pyvenv.cfg
+*.xls
