@@ -1,3 +1,4 @@
+from datetime import datetime
 import re
 import pathlib as pl
 
@@ -84,7 +85,8 @@ def parse():
 
     # print(searching)        # not found
 
-    errors = {}
+    errors = {'Артикул поставщика': [],
+              'Найденный код': []}
 
     file_from.set_index('Код для поиска', inplace=True)
     to_change.set_index('Артикул поставщика', inplace=True)
@@ -101,8 +103,9 @@ def parse():
                 amount = 0
             finally:
                 to_change.loc[[raw_code], ['Количество']] = amount
-        except KeyError as not_found:
-            errors.update({raw_code: code})
+        except KeyError:
+            errors['Артикул поставщика'].append(raw_code)
+            errors['Найденный код'].append(code)
 
     to_change.reset_index(inplace=True)
     to_change = to_change.reindex(columns=['Баркод',
@@ -112,10 +115,13 @@ def parse():
                                            'Наименование',
                                            'Размер',
                                            'Артикул поставщика'])
-    save = pd.ExcelWriter('123.xlsx')
-    to_change.to_excel(save)
-    save.save()
-
+    output_save = pd.ExcelWriter('123.xlsx')
+    to_change.to_excel(output_save)
+    output_save.save()
+    errors_df = pd.DataFrame(errors)
+    errors_save = pd.ExcelWriter('Errors.xlsx')
+    errors_df.to_excel(errors_save)
+    errors_save.save()
 
 
 root = Tk()
