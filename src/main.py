@@ -1,4 +1,3 @@
-from datetime import datetime
 import re
 import pathlib as pl
 
@@ -10,13 +9,11 @@ from MyLibs.GUI import *
 
 
 def parse():
-    path_from = pl.Path(main_window.get_input_from())
     path_to = pl.Path(main_window.get_input_to())
 
     to_change = pd.read_excel(path_to)
 
-    file_from = DataFrameLoader(path=path_from,
-                                cols=['Номенклатура',
+    file_from = DataFrameLoader(cols=['Номенклатура',
                                       'Описание',
                                       'Ед.изм.',
                                       'Базовая',
@@ -24,15 +21,19 @@ def parse():
                                       'Заказать',
                                       'Региональный склад',
                                       'Витрина ОК Галерея Кухни'],
-                                skip=2).load_df().astype({'Код для поиска': 'int32'})
+                                skip=2)
+    file_from.set_path(main_window.get_input_from())
+    file_from = file_from.load_df()
+    file_from = file_from.astype({'Код для поиска': 'int32'})
 
-    file_to = DataFrameLoader(path=path_to,
-                              cols=['Баркод',
+    file_to = DataFrameLoader(cols=['Баркод',
                                     'Вид товара',
                                     'Бренд',
                                     'Наименование',
                                     'Размер'],
-                              skip=0).load_df()
+                              skip=0)
+    file_to.set_path(main_window.get_input_to())
+    file_to = file_to.load_df()
 
     searching = file_to['Артикул поставщика']
 
