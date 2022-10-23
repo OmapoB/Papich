@@ -8,7 +8,7 @@ from MyLibs.data_loader import DataFrameLoader
 from MyLibs.GUI import *
 
 
-def parse():
+def main():
     path_to = pl.Path(main_window.get_input_to())
 
     to_change = pd.read_excel(path_to)
@@ -84,8 +84,6 @@ def parse():
     for key in patterns_dict.keys():
         searching = find_by_pattern(key, searching)
 
-    # print(searching)        # not found
-
     errors = {'Артикул поставщика': [],
               'Найденный код': []}
 
@@ -119,13 +117,14 @@ def parse():
     output_save = pd.ExcelWriter('123.xlsx')
     to_change.to_excel(output_save)
     output_save.save()
-    errors_df = pd.DataFrame(errors)
+    errors = pd.DataFrame(errors)
     errors_save = pd.ExcelWriter('Errors.xlsx')
-    errors_df.to_excel(errors_save)
+    errors.to_excel(errors_save)
     errors_save.save()
 
 
-root = Tk()
-main_window = MainWindow(root)
-main_window.submit.config(command=parse)
-root.mainloop()
+if __name__ == '__main__':
+    root = Tk()
+    main_window = MainWindow(root)
+    main_window.submit.config(command=main)
+    root.mainloop()
